@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Respiratory & Pain Study — Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:   #0d1b2a;
+    --ink:    #1a2940;
+    --steel:  #2e4a6a;
+    --sky:    #4a90c4;
+    --ice:    #c8dff0;
+    --cream:  #f5f0e8;
+    --sand:   #e8dfc8;
+    --amber:  #d4832a;
+    --coral:  #c45a3c;
+    --sage:   #4a7c59;
+    --white:  #fdfcfa;
+    --text:   #1a2940;
+    --muted:  #6b7a8d;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--navy);
+    color: var(--white);
+    padding: 80px 40px 64px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -40%; right: -10%;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(74,144,196,0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--amber), var(--sky), var(--sage));
+  }
+  .hero-inner { max-width: 1100px; margin: 0 auto; }
+  .hero-tag {
+    display: inline-block;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--sky);
+    border: 1px solid rgba(74,144,196,0.4);
+    padding: 4px 12px; border-radius: 2px;
+    margin-bottom: 28px;
+  }
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(36px, 5vw, 64px);
+    line-height: 1.1;
+    font-weight: 400;
+    margin-bottom: 20px;
+    max-width: 800px;
+  }
+  .hero h1 em { font-style: italic; color: var(--ice); }
+  .hero-sub {
+    font-size: 17px; color: rgba(255,255,255,0.65);
+    max-width: 520px; line-height: 1.6; margin-bottom: 48px;
+  }
+  .hero-meta {
+    display: flex; gap: 40px; flex-wrap: wrap;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 28px;
+  }
+  .meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .meta-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.4); }
+  .meta-value { font-size: 15px; color: var(--ice); font-weight: 500; }
+
+  /* ── NAV ── */
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(13,27,42,0.96);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(74,144,196,0.2);
+  }
+  .nav-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; gap: 0; overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-inner::-webkit-scrollbar { display: none; }
+  .nav a {
+    display: inline-block;
+    padding: 14px 20px;
+    font-size: 13px; font-weight: 500; letter-spacing: 0.02em;
+    color: rgba(255,255,255,0.55);
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .nav a:hover, .nav a.active { color: var(--sky); border-bottom-color: var(--sky); }
+
+  /* ── MAIN LAYOUT ── */
+  .main { max-width: 1100px; margin: 0 auto; padding: 64px 24px; }
+  .section { margin-bottom: 80px; scroll-margin-top: 60px; }
+
+  .section-header { margin-bottom: 36px; }
+  .section-num {
+    font-size: 11px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--sky); margin-bottom: 8px;
+  }
+  .section-header h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(24px, 3vw, 36px); font-weight: 400;
+    color: var(--ink); line-height: 1.2;
+  }
+  .section-header p { color: var(--muted); font-size: 15px; margin-top: 10px; max-width: 580px; }
+
+  /* ── KPI STRIP ── */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 2px;
+    background: var(--steel);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 48px;
+  }
+  .kpi-item {
+    background: var(--white);
+    padding: 24px 20px;
+    position: relative;
+  }
+  .kpi-item::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .kpi-item:nth-child(1)::before { background: var(--sky); }
+  .kpi-item:nth-child(2)::before { background: var(--amber); }
+  .kpi-item:nth-child(3)::before { background: var(--sage); }
+  .kpi-item:nth-child(4)::before { background: var(--coral); }
+  .kpi-item:nth-child(5)::before { background: var(--steel); }
+  .kpi-item:nth-child(6)::before { background: #8b5e9a; }
+  .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 8px; }
+  .kpi-value { font-family: 'DM Serif Display', serif; font-size: 36px; color: var(--ink); line-height: 1; }
+  .kpi-unit { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* ── DATA TABLE ── */
+  .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--sand); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--white); }
+  thead th {
+    background: var(--ink); color: var(--ice);
+    padding: 12px 16px; text-align: left;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+    position: sticky; top: 0;
+  }
+  tbody tr { border-bottom: 1px solid var(--sand); transition: background 0.15s; }
+  tbody tr:hover { background: #f0e8d8; }
+  tbody td { padding: 11px 16px; color: var(--text); }
+  td.name { font-weight: 500; }
+  .bmi-pill {
+    display: inline-block; padding: 2px 8px; border-radius: 2px;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.03em;
+  }
+  .bmi-normal  { background: #d6ecde; color: #2e6b40; }
+  .bmi-over    { background: #fde8cc; color: #8a4a0a; }
+  .pain-bar { display: flex; align-items: center; gap: 8px; }
+  .pain-dots { display: flex; gap: 3px; }
+  .pain-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--sand); }
+  .pain-dot.filled { background: var(--coral); }
+
+  /* ── CHARTS ── */
+  .charts-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+  .chart-card {
+    background: var(--white); border: 1px solid var(--sand); border-radius: 8px;
+    padding: 24px;
+  }
+  .chart-card.full { grid-column: 1 / -1; }
+  .chart-title {
+    font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 4px;
+  }
+  .chart-sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+  .leg { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+  .leg-sq { width: 10px; height: 10px; border-radius: 2px; }
+  .leg-circ { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* ── CORRELATION MATRIX ── */
+  .corr-wrap { display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap; }
+  .corr-table { border-collapse: collapse; font-size: 11px; }
+  .corr-table th, .corr-table td { padding: 6px 8px; text-align: center; min-width: 52px; }
+  .corr-table th.row-h { text-align: right; color: var(--muted); font-weight: 500; }
+  .corr-table th.col-h { color: var(--muted); font-weight: 500; }
+  .corr-table td.cell { border-radius: 3px; font-weight: 500; }
+  .corr-legend { font-size: 12px; color: var(--muted); line-height: 2; }
+  .corr-legend span { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+
+  /* ── FINDINGS ── */
+  .findings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+  .finding-card {
+    background: var(--white); border: 1px solid var(--sand); border-radius: 8px;
+    padding: 24px; position: relative; overflow: hidden;
+  }
+  .finding-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; width: 4px; bottom: 0;
+  }
+  .finding-card.blue::before  { background: var(--sky); }
+  .finding-card.amber::before { background: var(--amber); }
+  .finding-card.coral::before { background: var(--coral); }
+  .finding-card.sage::before  { background: var(--sage); }
+  .finding-card.purple::before{ background: #8b5e9a; }
+  .finding-num { font-family: 'DM Serif Display', serif; font-size: 42px; color: var(--sand); line-height: 1; margin-bottom: 12px; }
+  .finding-title { font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 8px; }
+  .finding-body { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* ── PAIN GROUPS TABLE ── */
+  .group-table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  .group-table th {
+    background: var(--ink); color: var(--ice);
+    padding: 10px 14px; text-align: left;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase;
+  }
+  .group-table td { padding: 12px 14px; border-bottom: 1px solid var(--sand); }
+  .group-table tr:nth-child(even) td { background: #faf5ee; }
+  .bar-cell { display: flex; align-items: center; gap: 10px; }
+  .inline-bar { height: 8px; border-radius: 2px; background: var(--sky); transition: width 0.4s; }
+  .inline-bar.green { background: var(--sage); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--navy); color: rgba(255,255,255,0.45);
+    text-align: center; padding: 40px 24px;
+    font-size: 13px; line-height: 1.8;
+    border-top: 3px solid;
+    border-image: linear-gradient(90deg, var(--amber), var(--sky), var(--sage)) 1;
+  }
+
+  @media (max-width: 640px) {
+    .charts-2col { grid-template-columns: 1fr; }
+    .charts-2col .chart-card.full { grid-column: 1; }
+    .hero { padding: 48px 24px 40px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">Graduation Project — Data Analysis Report</div>
+    <h1>Respiratory Function,<br><em>BMI & Pain Threshold</em><br>Study</h1>
+    <p class="hero-sub">A comprehensive statistical analysis of physiological measurements across 14 participants, exploring the relationship between pulmonary capacity and pain perception.</p>
+    <div class="hero-meta">
+      <div class="meta-item"><span class="meta-label">Sample size</span><span class="meta-value">14 participants</span></div>
+      <div class="meta-item"><span class="meta-label">Variables</span><span class="meta-value">6 measured</span></div>
+      <div class="meta-item"><span class="meta-label">Key finding</span><span class="meta-value">FEV1 – Pain r = −0.834</span></div>
+      <div class="meta-item"><span class="meta-label">Date</span><span class="meta-value">May 2026</span></div>
+    </div>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#overview" class="active">Overview</a>
+    <a href="#data">Participant Data</a>
+    <a href="#stats">Descriptive Statistics</a>
+    <a href="#bmi">BMI Analysis</a>
+    <a href="#charts">Charts</a>
+    <a href="#correlations">Correlations</a>
+    <a href="#pain-groups">Pain Groups</a>
+    <a href="#findings">Findings</a>
+  </div>
+</nav>
+
+<main class="main">
+
+  <!-- OVERVIEW KPIs -->
+  <section class="section" id="overview">
+    <div class="section-header">
+      <div class="section-num">01 — Overview</div>
+      <h2>At a glance</h2>
+      <p>Key summary statistics across all 14 participants.</p>
+    </div>
+
+    <div class="kpi-strip">
+      <div class="kpi-item"><div class="kpi-label">Participants</div><div class="kpi-value">14</div><div class="kpi-unit">total sample</div></div>
+      <div class="kpi-item"><div class="kpi-label">Mean PEF</div><div class="kpi-value">143</div><div class="kpi-unit">L/min ± 78</div></div>
+      <div class="kpi-item"><div class="kpi-label">Mean FEV1</div><div class="kpi-value">1.78</div><div class="kpi-unit">litres ± 0.67</div></div>
+      <div class="kpi-item"><div class="kpi-label">Mean BMI</div><div class="kpi-value">24.3</div><div class="kpi-unit">kg/m² (normal range)</div></div>
+      <div class="kpi-item"><div class="kpi-label">PEF – FEV1</div><div class="kpi-value">0.941</div><div class="kpi-unit">Pearson r</div></div>
+      <div class="kpi-item"><div class="kpi-label">FEV1 – Pain</div><div class="kpi-value">−0.834</div><div class="kpi-unit">Pearson r</div></div>
+    </div>
+  </section>
+
+  <!-- PARTICIPANT DATA -->
+  <section class="section" id="data">
+    <div class="section-header">
+      <div class="section-num">02 — Participant Data</div>
+      <h2>Complete dataset</h2>
+      <p>All measurements for all 14 participants including BMI classification and pain threshold visualisation.</p>
+    </div>
+    <div class="table-wrap">
+      <table id="main-table">
+        <thead>
+          <tr>
+            <th>Name</th><th>Weight (kg)</th><th>Height (cm)</th><th>BMI</th><th>BMI Class</th>
+            <th>PEF (L/min)</th><th>FEV1 (L)</th><th>Pain Threshold</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- DESCRIPTIVE STATS -->
+  <section class="section" id="stats">
+    <div class="section-header">
+      <div class="section-num">03 — Descriptive Statistics</div>
+      <h2>Summary statistics</h2>
+      <p>Mean, standard deviation, minimum, maximum, and range for all continuous variables.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Variable</th><th>Mean</th><th>Std Dev</th><th>Min</th><th>Max</th><th>Range</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="name">Weight (kg)</td><td>64.71</td><td>9.47</td><td>55.0</td><td>90.0</td><td>35.0</td></tr>
+          <tr><td class="name">Height (cm)</td><td>162.79</td><td>7.73</td><td>153.0</td><td>180.0</td><td>27.0</td></tr>
+          <tr><td class="name">BMI (kg/m²)</td><td>24.32</td><td>1.68</td><td>21.8</td><td>27.8</td><td>6.0</td></tr>
+          <tr><td class="name">PEF (L/min)</td><td>143.43</td><td>78.23</td><td>57.0</td><td>332.0</td><td>275.0</td></tr>
+          <tr><td class="name">FEV1 (L)</td><td>1.781</td><td>0.670</td><td>0.86</td><td>2.81</td><td>1.95</td></tr>
+          <tr><td class="name">Pain Threshold</td><td>2.79</td><td>1.63</td><td>1</td><td>6</td><td>5</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- BMI -->
+  <section class="section" id="bmi">
+    <div class="section-header">
+      <div class="section-num">04 — BMI Classification</div>
+      <h2>Body mass distribution</h2>
+      <p>Participants classified using WHO BMI criteria.</p>
+    </div>
+    <div class="table-wrap" style="max-width:520px;">
+      <table>
+        <thead><tr><th>Category</th><th>Count</th><th>%</th><th>WHO Range</th></tr></thead>
+        <tbody>
+          <tr><td><span class="bmi-pill bmi-normal">Normal</span></td><td>9</td><td>64.3%</td><td>18.5 – 24.9</td></tr>
+          <tr><td><span class="bmi-pill bmi-over">Overweight</span></td><td>5</td><td>35.7%</td><td>25.0 – 29.9</td></tr>
+          <tr><td><span class="bmi-pill" style="background:#f0f0e8;color:#555;">Underweight</span></td><td>0</td><td>0%</td><td>&lt; 18.5</td></tr>
+          <tr><td><span class="bmi-pill" style="background:#fcdcd0;color:#7a2a1a;">Obese</span></td><td>0</td><td>0%</td><td>≥ 30.0</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- CHARTS -->
+  <section class="section" id="charts">
+    <div class="section-header">
+      <div class="section-num">05 — Charts</div>
+      <h2>Visual analysis</h2>
+      <p>Interactive charts for all key variables and relationships.</p>
+    </div>
+
+    <div class="charts-2col">
+
+      <div class="chart-card full">
+        <div class="chart-title">PEF per participant with pain threshold overlay</div>
+        <div class="chart-sub">Bars = peak expiratory flow (L/min) · Dashed line = pain threshold score</div>
+        <div class="legend">
+          <span class="leg"><span class="leg-sq" style="background:#4a90c4;"></span>PEF (L/min)</span>
+          <span class="leg"><span class="leg-circ" style="background:#c45a3c;"></span>Pain threshold (×40)</span>
+        </div>
+        <div style="position:relative;height:260px;"><canvas id="pefChart" role="img" aria-label="Bar chart of PEF values per participant overlaid with pain threshold line.">PEF ranges from 57 to 332; pain threshold inversely tracks PEF.</canvas></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">BMI by participant</div>
+        <div class="chart-sub">Color indicates WHO category</div>
+        <div class="legend">
+          <span class="leg"><span class="leg-sq" style="background:#4a90c4;"></span>Normal</span>
+          <span class="leg"><span class="leg-sq" style="background:#d4832a;"></span>Overweight</span>
+        </div>
+        <div style="position:relative;height:240px;"><canvas id="bmiChart" role="img" aria-label="Bar chart of BMI values; most between 22 and 26.">BMI values ranging from 21.8 to 27.8.</canvas></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">PEF vs pain threshold — scatter</div>
+        <div class="chart-sub">Each point = one participant (r = −0.764)</div>
+        <div style="position:relative;height:240px;"><canvas id="scatterChart" role="img" aria-label="Scatter plot showing negative correlation between PEF and pain threshold.">As PEF decreases, pain threshold score increases.</canvas></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">FEV1 distribution</div>
+        <div class="chart-sub">Histogram of forced expiratory volume</div>
+        <div style="position:relative;height:240px;"><canvas id="fev1Chart" role="img" aria-label="Bar chart of FEV1 values per participant.">FEV1 ranges from 0.86 to 2.81 L.</canvas></div>
+      </div>
+
+      <div class="chart-card full">
+        <div class="chart-title">Mean PEF & FEV1 by pain threshold group</div>
+        <div class="chart-sub">Both respiratory measures decline monotonically as pain sensitivity increases</div>
+        <div class="legend">
+          <span class="leg"><span class="leg-sq" style="background:#4a90c4;"></span>Mean PEF (L/min)</span>
+          <span class="leg"><span class="leg-sq" style="background:#4a7c59;"></span>Mean FEV1 × 100 (L)</span>
+        </div>
+        <div style="position:relative;height:240px;"><canvas id="groupChart" role="img" aria-label="Grouped bar chart showing PEF and FEV1 declining as pain threshold increases from 1 to 6.">Clear declining trend in both respiratory measures.</canvas></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CORRELATIONS -->
+  <section class="section" id="correlations">
+    <div class="section-header">
+      <div class="section-num">06 — Correlation Analysis</div>
+      <h2>Pearson correlation matrix</h2>
+      <p>|r| &lt; 0.3 weak · 0.3–0.6 moderate · 0.6–0.8 strong · &gt; 0.8 very strong</p>
+    </div>
+    <div class="chart-card" style="display:inline-block; min-width:320px;">
+      <div class="corr-wrap">
+        <div style="overflow-x:auto;">
+          <table class="corr-table" id="corrTable"></table>
+        </div>
+        <div class="corr-legend">
+          <div><span style="background:#042C53;"></span>Strong positive ≥ 0.70</div>
+          <div><span style="background:#378ADD;"></span>Moderate positive 0.30–0.70</div>
+          <div><span style="background:#e0dace;"></span>Weak / negligible</div>
+          <div><span style="background:#c45a3c;"></span>Moderate negative</div>
+          <div><span style="background:#7a1e0e;"></span>Strong negative ≤ −0.70</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAIN GROUPS -->
+  <section class="section" id="pain-groups">
+    <div class="section-header">
+      <div class="section-num">07 — Pain Threshold Groups</div>
+      <h2>Respiratory function by pain score</h2>
+      <p>A monotonic decline in both PEF and FEV1 as pain sensitivity increases from score 1 to 6.</p>
+    </div>
+    <div class="table-wrap">
+      <table class="group-table" id="painTable">
+        <thead><tr><th>Pain Score</th><th>n</th><th>Mean PEF (L/min)</th><th>Mean FEV1 (L)</th><th>Mean BMI</th></tr></thead>
+        <tbody id="painTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- FINDINGS -->
+  <section class="section" id="findings">
+    <div class="section-header">
+      <div class="section-num">08 — Key Findings</div>
+      <h2>Conclusions & recommendations</h2>
+    </div>
+    <div class="findings-grid">
+      <div class="finding-card blue">
+        <div class="finding-num">01</div>
+        <div class="finding-title">PEF–FEV1 coupling</div>
+        <div class="finding-body">Near-perfect correlation (r = 0.941) confirms strong internal consistency between both respiratory measures across all participants.</div>
+      </div>
+      <div class="finding-card coral">
+        <div class="finding-num">02</div>
+        <div class="finding-title">Pain & lung function</div>
+        <div class="finding-body">FEV1–Pain (r = −0.834) and PEF–Pain (r = −0.764) are the strongest clinical findings — lower lung capacity is clearly linked to higher pain sensitivity.</div>
+      </div>
+      <div class="finding-card amber">
+        <div class="finding-num">03</div>
+        <div class="finding-title">BMI not a predictor</div>
+        <div class="finding-body">Despite 64% of participants having normal BMI, BMI showed negligible correlation with respiratory function (PEF r = 0.05; FEV1 r = 0.11).</div>
+      </div>
+      <div class="finding-card sage">
+        <div class="finding-num">04</div>
+        <div class="finding-title">Monotonic pain trend</div>
+        <div class="finding-body">Mean PEF fell from 229 L/min (pain score 1) to 61 L/min (score 6), a 73% decline. FEV1 followed an identical pattern.</div>
+      </div>
+      <div class="finding-card purple">
+        <div class="finding-num">05</div>
+        <div class="finding-title">Expand the study</div>
+        <div class="finding-body">With n = 14, results are suggestive, not conclusive. Larger samples with matched controls and longitudinal follow-up are recommended.</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <strong style="color:rgba(255,255,255,0.7);">Respiratory Function, BMI & Pain Threshold Study</strong><br>
+  Graduation Project Data Analysis · May 2026 · Confidential Academic Documentation
+</footer>
+
+<script>
+const participants = [
+  {name:"Arwa",   w:64, h:163, bmi:24.1, pef:221, fev1:2.69, pain:2},
+  {name:"Samia",  w:70, h:167, bmi:25.1, pef:183, fev1:2.41, pain:1},
+  {name:"Samah",  w:58, h:160, bmi:22.7, pef:332, fev1:2.81, pain:1},
+  {name:"Lamis",  w:60, h:156, bmi:24.7, pef:209, fev1:2.45, pain:2},
+  {name:"Asmaa",  w:61, h:160, bmi:23.8, pef:72,  fev1:1.19, pain:5},
+  {name:"Aya",    w:60, h:165, bmi:22.0, pef:61,  fev1:0.86, pain:6},
+  {name:"Manar",  w:56, h:155, bmi:23.3, pef:98,  fev1:1.31, pain:3},
+  {name:"Safaa",  w:65, h:160, bmi:25.4, pef:57,  fev1:0.96, pain:4},
+  {name:"Nada",   w:60, h:156, bmi:24.7, pef:142, fev1:1.91, pain:2},
+  {name:"Farah",  w:70, h:162, bmi:26.7, pef:118, fev1:1.45, pain:2},
+  {name:"Esraa",  w:55, h:153, bmi:23.5, pef:172, fev1:2.32, pain:1},
+  {name:"Hitham", w:90, h:180, bmi:27.8, pef:181, fev1:2.04, pain:2},
+  {name:"Romisaa",w:60, h:166, bmi:21.8, pef:78,  fev1:1.26, pain:3},
+  {name:"Aza",    w:77, h:176, bmi:24.9, pef:84,  fev1:1.28, pain:5},
+];
+
+// Table
+const tb = document.getElementById('table-body');
+participants.forEach(p => {
+  const cls = p.bmi < 25 ? 'bmi-normal' : 'bmi-over';
+  const label = p.bmi < 25 ? 'Normal' : 'Overweight';
+  const dots = Array.from({length:6},(_,i)=>`<span class="pain-dot${i<p.pain?' filled':''}"></span>`).join('');
+  tb.innerHTML += `<tr>
+    <td class="name">${p.name}</td><td>${p.w}</td><td>${p.h}</td>
+    <td>${p.bmi.toFixed(1)}</td>
+    <td><span class="bmi-pill ${cls}">${label}</span></td>
+    <td>${p.pef}</td><td>${p.fev1.toFixed(2)}</td>
+    <td><div class="pain-bar"><div class="pain-dots">${dots}</div><span style="font-size:12px;color:#888;">${p.pain}</span></div></td>
+  </tr>`;
+});
+
+// Pain groups table
+const painTb = document.getElementById('painTableBody');
+const maxPEF = 229;
+[1,2,3,4,5,6].forEach(s => {
+  const g = participants.filter(p=>p.pain===s);
+  if(!g.length) return;
+  const mPEF = +(g.reduce((a,b)=>a+b.pef,0)/g.length).toFixed(1);
+  const mFEV = +(g.reduce((a,b)=>a+b.fev1,0)/g.length).toFixed(2);
+  const mBMI = +(g.reduce((a,b)=>a+b.bmi,0)/g.length).toFixed(1);
+  const pW = Math.round(mPEF/332*100);
+  const fW = Math.round(mFEV/2.81*100);
+  painTb.innerHTML += `<tr>
+    <td><strong>${s}</strong> ${s===1?'(lowest)':s===6?'(highest)':''}</td>
+    <td>${g.length}</td>
+    <td><div class="bar-cell"><div class="inline-bar" style="width:${pW}%"></div>${mPEF}</div></td>
+    <td><div class="bar-cell"><div class="inline-bar green" style="width:${fW}%"></div>${mFEV}</div></td>
+    <td>${mBMI}</td>
+  </tr>`;
+});
+
+// Correlation matrix
+const vars = ['Weight','Height','BMI','PEF','FEV1','Pain'];
+const data = [
+  participants.map(p=>p.w),
+  participants.map(p=>p.h),
+  participants.map(p=>p.bmi),
+  participants.map(p=>p.pef),
+  participants.map(p=>p.fev1),
+  participants.map(p=>p.pain),
+];
+function mean(a){return a.reduce((s,v)=>s+v,0)/a.length;}
+function corr(a,b){const ma=mean(a),mb=mean(b);const n=a.map((x,i)=>(x-ma)*(b[i]-mb)).reduce((s,v)=>s+v,0);const d=Math.sqrt(a.map(x=>(x-ma)**2).reduce((s,v)=>s+v,0)*b.map(x=>(x-mb)**2).reduce((s,v)=>s+v,0));return n/d;}
+const ct = document.getElementById('corrTable');
+let hRow = '<tr><th></th>' + vars.map(v=>`<th class="col-h">${v}</th>`).join('') + '</tr>';
+ct.innerHTML = hRow;
+vars.forEach((v,i)=>{
+  let row = `<tr><th class="row-h">${v}</th>`;
+  vars.forEach((_,j)=>{
+    const r = corr(data[i],data[j]);
+    const rs = r.toFixed(3);
+    let bg, fc;
+    if(i===j){bg='#2e4a6a';fc='#c8dff0';}
+    else if(r>=0.7){bg='#042C53';fc='#B5D4F4';}
+    else if(r>=0.3){bg='#85B7EB';fc='#042C53';}
+    else if(r<=-0.7){bg='#7a1e0e';fc='#fcdcd0';}
+    else if(r<=-0.3){bg='#c45a3c';fc='#fdf5ee';}
+    else{bg='#e8e0d0';fc='#555';}
+    row += `<td class="cell" style="background:${bg};color:${fc};">${rs}</td>`;
+  });
+  row += '</tr>';
+  ct.innerHTML += row;
+});
+
+// Charts
+const names = participants.map(p=>p.name);
+const pef  = participants.map(p=>p.pef);
+const fev1 = participants.map(p=>p.fev1);
+const bmi  = participants.map(p=>p.bmi);
+const pain = participants.map(p=>p.pain);
+const gc = '#rgba(0,0,0,0.06)';
+
+new Chart(document.getElementById('pefChart'),{
+  type:'bar',
+  data:{labels:names,datasets:[
+    {label:'PEF',data:pef,backgroundColor:'#4a90c4',borderRadius:3,order:2},
+    {label:'Pain',data:pain.map(v=>v*40),type:'line',borderColor:'#c45a3c',backgroundColor:'transparent',
+     pointBackgroundColor:'#c45a3c',pointRadius:5,tension:0.3,order:1,borderDash:[5,4],borderWidth:2}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:(ctx)=>ctx.datasetIndex===1?'Pain: '+Math.round(ctx.raw/40):'PEF: '+ctx.raw+' L/min'}}},
+    scales:{x:{ticks:{font:{size:10},maxRotation:45}},y:{ticks:{font:{size:10}}}}}
+});
+
+new Chart(document.getElementById('bmiChart'),{
+  type:'bar',
+  data:{labels:names,datasets:[{label:'BMI',data:bmi,backgroundColor:bmi.map(v=>v<25?'#4a90c4':'#d4832a'),borderRadius:3}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{x:{ticks:{font:{size:10},maxRotation:45}},y:{min:18,max:30,ticks:{font:{size:10}}}}}
+});
+
+new Chart(document.getElementById('scatterChart'),{
+  type:'scatter',
+  data:{datasets:[{label:'Participant',data:pef.map((p,i)=>({x:p,y:pain[i]})),backgroundColor:'#4a90c4',pointRadius:7,pointHoverRadius:9}]},
+  options:{responsive:true,maintainAspectRatio:false,layout:{padding:12},
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:(ctx)=>`PEF ${ctx.parsed.x} | Pain ${ctx.parsed.y}`}}},
+    scales:{
+      x:{title:{display:true,text:'PEF (L/min)',font:{size:11}},min:40,max:360,ticks:{font:{size:10}}},
+      y:{title:{display:true,text:'Pain threshold',font:{size:11}},min:0,max:7,ticks:{stepSize:1,font:{size:10}}}}}
+});
+
+new Chart(document.getElementById('fev1Chart'),{
+  type:'bar',
+  data:{labels:names,datasets:[{label:'FEV1',data:fev1,backgroundColor:'#4a7c59',borderRadius:3}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{x:{ticks:{font:{size:10},maxRotation:45}},y:{ticks:{font:{size:10}}}}}
+});
+
+const pScores=[1,2,3,4,5,6];
+const gPEF=pScores.map(s=>{const g=pef.filter((_,i)=>pain[i]===s);return g.length?Math.round(g.reduce((a,b)=>a+b)/g.length):0;});
+const gFEV=pScores.map(s=>{const g=fev1.filter((_,i)=>pain[i]===s);return g.length?Math.round(g.reduce((a,b)=>a+b)/g.length*100):0;});
+new Chart(document.getElementById('groupChart'),{
+  type:'bar',
+  data:{labels:['Pain 1','Pain 2','Pain 3','Pain 4','Pain 5','Pain 6'],
+    datasets:[
+      {label:'PEF',data:gPEF,backgroundColor:'#4a90c4',borderRadius:3},
+      {label:'FEV1×100',data:gFEV,backgroundColor:'#4a7c59',borderRadius:3}
+    ]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:(ctx)=>ctx.datasetIndex===1?'FEV1: '+(ctx.raw/100).toFixed(2)+' L':'PEF: '+ctx.raw+' L/min'}}},
+    scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:10}}}}}
+});
+
+// Nav active state
+const sections = document.querySelectorAll('.section');
+const navLinks = document.querySelectorAll('.nav a');
+const observer = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      navLinks.forEach(a=>a.classList.remove('active'));
+      const id = e.target.id;
+      const link = document.querySelector(`.nav a[href="#${id}"]`);
+      if(link) link.classList.add('active');
+    }
+  });
+},{threshold:0.3});
+sections.forEach(s=>observer.observe(s));
+</script>
+</body>
+</html>
